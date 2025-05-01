@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -13,7 +15,11 @@ public class Menu_Cs : MonoBehaviour
     [SerializeField] private GameObject settingsMenu;
     [SerializeField] private GameObject volumeSlider;
     [SerializeField] private GameObject volumeText;
-    
+    [SerializeField] private GameObject levelSelectButton;
+    [SerializeField] private GameObject level1;
+
+    [SerializeField] InputActionAsset inputActions;
+
     private Music_Cs music;
     private FadeEffect fade;
     public FadeEffectUI_Cs fadeUI;
@@ -28,6 +34,12 @@ public class Menu_Cs : MonoBehaviour
         music = GameObject.Find("MusicPlayer").GetComponent<Music_Cs>();
         volumeSlider.GetComponent<Slider>().value = music.volume;
         startingLevel = false;
+
+        inputActions.FindActionMap("UI").FindAction("Cancel").performed += (InputAction.CallbackContext context) =>
+        {
+            selected = 0;
+            ChangeMenu();
+        };
     }
     
     void Update()
@@ -50,6 +62,7 @@ public class Menu_Cs : MonoBehaviour
     public void LevelSelect()
     {
         selected = 1;
+
     }
 
     public void SettingsMenu()
@@ -68,11 +81,20 @@ public class Menu_Cs : MonoBehaviour
         {
             if (i == selected)
             {
-                menus[i].localScale = new Vector3(1, 1, 1);
+                menus[i].gameObject.SetActive(true);
                 continue;
             }
 
-            menus[i].localScale = Vector3.zero;
+            menus[i].gameObject.SetActive(false);
+        }
+
+        if (selected == 1)
+        {
+            EventSystem.current.SetSelectedGameObject(level1.gameObject);
+        }
+        else
+        {
+            EventSystem.current.SetSelectedGameObject(levelSelectButton.gameObject);
         }
     }
 

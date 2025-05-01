@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
@@ -30,6 +31,8 @@ public class Movement_Cs : MonoBehaviour
     [SerializeField] private Transform rayCastPosition2;
     [SerializeField] private Transform rayCastPosition3;
 
+    bool isJumping = false;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -38,6 +41,17 @@ public class Movement_Cs : MonoBehaviour
         {
             Physics2D.IgnoreLayerCollision(8, 9, true);
             Physics2D.IgnoreLayerCollision(8, 4, true);
+        }
+
+        
+        PlayerInput input = GetComponent<PlayerInput>();
+        if (petal)
+        {
+            input.SwitchCurrentControlScheme(new[] { Joystick.all[0] });
+        }
+        else
+        {
+            input.SwitchCurrentControlScheme(new[] { Joystick.all[1] });
         }
     }
 
@@ -54,7 +68,6 @@ public class Movement_Cs : MonoBehaviour
             rb.linearVelocity = new Vector2(0, rb.linearVelocityY);
             return;
         }
-        CheckMovement();
     }
 
     void FixedUpdate()
@@ -93,68 +106,57 @@ public class Movement_Cs : MonoBehaviour
         if (rb.linearVelocity.x >= maxSpeed || rb.linearVelocity.x <= -maxSpeed) rb.linearVelocityX += horizontalMovement * maxSpeed * Time.deltaTime;
     }
 
-    void CheckMovement()
+    public void OnMove(InputValue value)
     {
-        horizontalMovement = 0;
-        
-        if (Input.GetKeyDown(KeyCode.A) && petal)
-        {
-            horizontalMovement = -0.2f;
-        }
-        if (Input.GetKeyDown(KeyCode.D) && petal)
-        {
-            horizontalMovement = 0.2f;
-        }
-        if (Input.GetKey(KeyCode.A) && petal)
-        {
-            horizontalMovement = -1;
-        }
-        if (Input.GetKey(KeyCode.D) && petal)
-        {
-            horizontalMovement = 1;
-        }
-        if (Input.GetKeyDown(KeyCode.W) && petal)
-        {
-            if (!IsGrounded()) return;
-            
-            audioSource.PlaySound(SFX_Cs.SoundType.Jumping, 1f, 0.1f);
-            
-            rb.linearVelocityY = jumpForce;
-        }
-        
-        if (Input.GetKeyDown(KeyCode.LeftArrow) && !petal)
-        {
-            horizontalMovement = -0.2f;
-        }
-        if (Input.GetKeyDown(KeyCode.RightArrow) && !petal)
-        {
-            horizontalMovement = 0.2f;
-        }
-        if (Input.GetKey(KeyCode.LeftArrow) && !petal)
-        {
-            horizontalMovement = -1;
-        }
-        if (Input.GetKey(KeyCode.RightArrow) && !petal)
-        {
-            horizontalMovement = 1;
-        }
-        if (Input.GetKeyDown(KeyCode.UpArrow) && !petal)
-        {
-            if (!IsGrounded()) return;
-            
-            audioSource.PlaySound(SFX_Cs.SoundType.Jumping, 0.6f, 0.1f);
-            
-            rb.linearVelocityY = jumpForce;
-        }
+        var v = value.Get<Vector2>();
+        Vector2 dir = Vector2.zero;
+        if (v.x < 0) dir.x = -1;
+        else if (v.x > 0) dir.x = 1;
+        if (v.y > 0) dir.y = 1;
+        else if (v.y < 0) dir.y = -1;
 
-        if (Input.GetKey(KeyCode.UpArrow) && !petal && magnetized)
+        CheckMovement(dir);
+        if (v.y > 0.5f && !isJumping)
+        {
+            Jump();
+            isJumping = true;
+        }
+        else isJumping = false;
+    }
+
+    void CheckMovement(Vector2 dir)
+    {
+        horizontalMovement = dir.x;
+        
+
+        if (dir.y > 0 && !petal && magnetized)
         {
             rb.linearVelocityY = maxSpeed;
         }
         
-        if (Input.GetKey(KeyCode.DownArrow) && !petal && magnetized)
+        if (dir.y < 0 && !petal && magnetized)
         {
             rb.linearVelocityY = -maxSpeed;
+        }
+    }
+
+    void Jump()
+    {
+        if (petal)
+        {
+            if (!IsGrounded()) return;
+
+            audioSource.PlaySound(SFX_Cs.SoundType.Jumping, 1f, 0.1f);
+
+            rb.linearVelocityY = jumpForce;
+        }
+        else
+        {
+            if (!IsGrounded()) return;
+
+            audioSource.PlaySound(SFX_Cs.SoundType.Jumping, 0.6f, 0.1f);
+
+            rb.linearVelocityY = jumpForce;
         }
     }
 
