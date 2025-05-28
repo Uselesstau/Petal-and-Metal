@@ -115,11 +115,11 @@ public class Movement_Cs : MonoBehaviour
     {
         var v = value.Get<Vector2>();
         Vector2 dir = Vector2.zero;
-        if (v.x < 0) dir.x = -1;
-        else if (v.x > 0) dir.x = 1;
+        if (v.x < -0.1) dir.x = -1;
+        else if (v.x > 0.1) dir.x = 1;
         else dir.x = 0;
-        if (v.y > 0) dir.y = 1;
-        else if (v.y < 0) dir.y = -1;
+        if (v.y > 0.1) dir.y = 1;
+        else if (v.y < -0.1) dir.y = -1;
         else dir.y = 0;
 
         CheckMovement(dir);
