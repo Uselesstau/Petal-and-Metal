@@ -70,6 +70,11 @@ public class Movement_Cs : MonoBehaviour
         }
     }
 
+    public void OnExit()
+    {
+        SceneManager.LoadScene(0);
+    }
+
     void FixedUpdate()
     {
         if (startingLevel) return;
@@ -112,8 +117,10 @@ public class Movement_Cs : MonoBehaviour
         Vector2 dir = Vector2.zero;
         if (v.x < 0) dir.x = -1;
         else if (v.x > 0) dir.x = 1;
+        else dir.x = 0;
         if (v.y > 0) dir.y = 1;
         else if (v.y < 0) dir.y = -1;
+        else dir.y = 0;
 
         CheckMovement(dir);
         if (v.y > 0.5f && !isJumping)
